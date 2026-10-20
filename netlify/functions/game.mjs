@@ -1,19 +1,20 @@
 import { getStore } from '@netlify/blobs';
 
 const headers={'content-type':'application/json','cache-control':'no-store'};
+const GAME_ID='helgtre-main';
 const clean=s=>String(s||'').trim().slice(0,40);
 const id=()=>crypto.randomUUID();
 async function load(code){const store=getStore('zoapmas-games');return {store,data:await store.get(code,{type:'json'})||{teams:[],updatedAt:null}}}
 export default async req=>{
  try{
   if(req.method==='GET'){
-   const code=clean(new URL(req.url).searchParams.get('code')).toUpperCase();if(!code)return new Response(JSON.stringify({error:'Spelcode ontbreekt'}),{status:400,headers});
+   const code=GAME_ID;
    const {data}=await load(code);return new Response(JSON.stringify(data),{headers});
   }
   if(req.method!=='POST')return new Response('',{status:405,headers});
   const body=await req.json(),action=body.action;
   if(action==='register'){
-   const name=clean(body.name),gameCode=clean(body.gameCode).toUpperCase();if(!name||!gameCode)return new Response(JSON.stringify({error:'Vul een teamnaam en spelcode in'}),{status:400,headers});
+   const name=clean(body.name),gameCode=GAME_ID;if(!name)return new Response(JSON.stringify({error:'Vul een teamnaam in'}),{status:400,headers});
    const {store,data}=await load(gameCode);const team={id:id(),name,gameCode,score:0,progress:0,quiz:0,updatedAt:new Date().toISOString()};data.teams.push(team);data.updatedAt=team.updatedAt;await store.setJSON(gameCode,data);return new Response(JSON.stringify({...data,team}),{headers});
   }
   if(action==='update'){
