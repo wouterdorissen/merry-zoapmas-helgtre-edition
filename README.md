@@ -4,7 +4,7 @@ Mobiele kerst-webapp voor teams, met registratie, gps/kompas, quiz, gedeeld scor
 
 ## Netlify
 
-Koppel deze repository aan Netlify. De instellingen worden automatisch uit `netlify.toml` gelezen. Netlify Blobs bewaart de teams en scores, dus Supabase is niet nodig.
+Koppel deze repository aan Netlify. De instellingen worden automatisch uit `netlify.toml` gelezen. Netlify Blobs bewaart de teams en scores.
 
 Voor AI-selfies voeg je in Netlify onder **Site configuration > Environment variables** toe:
 
@@ -19,4 +19,4 @@ Gebruik `npm install`, gevolgd door `npx netlify dev`. Alleen een statische prev
 
 ## Spelinstellingen
 
-De standaard spelcode is `HELGTRE`. De gps-posten in `app.js` hebben bewust nog geen vaste coördinaten. Vul de echte locaties in bij `stops` wanneer ze bekend zijn. Zonder coördinaten werkt het kompas als bewegingssensor en kan een begeleider een post handmatig bevestigen.
+De gps-posten in `app.js` hebben bewust nog geen vaste coördinaten. Vul de echte locaties in bij `stops` wanneer ze bekend zijn. Zonder coördinaten werkt het kompas als bewegingssensor en kan een speler een post handmatig bevestigen.
