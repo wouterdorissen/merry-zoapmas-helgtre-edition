@@ -1,0 +1,1 @@
+{"name":"merry-zoapmas-helgtre-edition","version":"1.0.0","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","check":"node --check app.js && node --check netlify/functions/game.mjs && node --check netlify/functions/ai-selfie.mjs"},"dependencies":{"@netlify/blobs":"^10.0.0"}}
