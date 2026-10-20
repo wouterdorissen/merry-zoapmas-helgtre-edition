@@ -1,27 +1,27 @@
 import { getStore } from '@netlify/blobs';
-
-const headers={'content-type':'application/json','cache-control':'no-store'};
-const GAME_ID='helgtre-main';
-const clean=s=>String(s||'').trim().slice(0,40);
-const id=()=>crypto.randomUUID();
-async function load(code){const store=getStore('zoapmas-games');return {store,data:await store.get(code,{type:'json'})||{teams:[],updatedAt:null}}}
-export default async req=>{
- try{
-  if(req.method==='GET'){
-   const code=GAME_ID;
-   const {data}=await load(code);return new Response(JSON.stringify(data),{headers});
-  }
-  if(req.method!=='POST')return new Response('',{status:405,headers});
-  const body=await req.json(),action=body.action;
-  if(action==='register'){
-   const name=clean(body.name),gameCode=GAME_ID;if(!name)return new Response(JSON.stringify({error:'Vul een teamnaam in'}),{status:400,headers});
-   const {store,data}=await load(gameCode);const team={id:id(),name,gameCode,score:0,progress:0,quiz:0,updatedAt:new Date().toISOString()};data.teams.push(team);data.updatedAt=team.updatedAt;await store.setJSON(gameCode,data);return new Response(JSON.stringify({...data,team}),{headers});
-  }
-  if(action==='update'){
-   const incoming=body.team,gameCode=clean(incoming?.gameCode).toUpperCase();if(!gameCode||!incoming?.id)return new Response(JSON.stringify({error:'Ongeldig team'}),{status:400,headers});
-   const {store,data}=await load(gameCode);const i=data.teams.findIndex(t=>t.id===incoming.id);if(i<0)return new Response(JSON.stringify({error:'Team niet gevonden'}),{status:404,headers});
-   data.teams[i]={...data.teams[i],name:clean(incoming.name),score:Math.max(0,Number(incoming.score)||0),progress:Math.min(3,Math.max(0,Number(incoming.progress)||0)),quiz:Math.min(4,Math.max(0,Number(incoming.quiz)||0)),updatedAt:new Date().toISOString()};data.teams.sort((a,b)=>b.score-a.score);data.updatedAt=new Date().toISOString();await store.setJSON(gameCode,data);return new Response(JSON.stringify(data),{headers});
-  }
-  return new Response(JSON.stringify({error:'Onbekende actie'}),{status:400,headers});
- }catch(error){console.error(error);return new Response(JSON.stringify({error:'Synchronisatie is tijdelijk niet beschikbaar'}),{status:500,headers})}
-};
+const headers={'content-type':'application/json','cache-control':'no-store'},KEY='helgtre-main';
+const clean=s=>String(s||'').trim().slice(0,60),now=()=>Date.now();
+const rounds=[
+ {location:{name:'De winterpoort',hint:'Zoek de plek waar jullie tocht begint.',bearing:25,lat:null,lng:null},question:{text:'Welke plant hangt men traditioneel op met Kerstmis?',options:['Maretak','Klavertje vier','Lavendel','Klimop'],answer:0}},
+ {location:{name:'Het lichtpunt',hint:'Volg het spoor naar de plek met het meeste licht.',bearing:110,lat:null,lng:null},question:{text:'Hoe heet het rendier met de rode neus?',options:['Donder','Rudolf','Cupid','Blitzen'],answer:1}},
+ {location:{name:'De stille boom',hint:'Zoek een grote boom en verzamel met alle teams.',bearing:195,lat:null,lng:null},question:{text:'In welk land ontstond de moderne kerstboomtraditie?',options:['België','Duitsland','Canada','Noorwegen'],answer:1}},
+ {location:{name:'Santa’s tussenstop',hint:'Ga naar de plek waar een slee zou kunnen stoppen.',bearing:270,lat:null,lng:null},question:{text:'Welke kleur hadden kerstballen oorspronkelijk vaak als verwijzing naar appels?',options:['Blauw','Rood','Zilver','Paars'],answer:1}},
+ {location:{name:'De Helgtre-finale',hint:'Vind de eindplek en maak je klaar voor de finale.',bearing:340,lat:null,lng:null},question:{text:'Hoeveel rendieren trekken traditioneel de slee als Rudolf wordt meegeteld?',options:['7','8','9','10'],answer:2}}
+];
+async function load(){const store=getStore('zoapmas-games');let game=await store.get(KEY,{type:'json'});if(game?.schemaVersion!==2){game={schemaVersion:2,teams:[],roundIndex:-1,round:null,totalRounds:rounds.length,aiPrompt:'Premium 3D Christmas team portrait, dark forest green, warm cinematic light'};advance(game);await store.setJSON(KEY,game)}return {store,game}}
+function publicGame(game){const time=now();if(game.round?.phase==='countdown'&&time>=game.round.questionStartsAt)game.round.phase='question';if(game.round?.phase==='question'&&time>=game.round.questionEndsAt)finish(game);const teams=[...game.teams].sort((a,b)=>(b.score||0)-(a.score||0));return {...game,teams,teamCount:teams.length,checkedInCount:game.round?teams.filter(t=>t.checkedInRound===game.round.number).length:0}}
+function advance(game){game.roundIndex++;if(game.roundIndex>=rounds.length){game.round=null;game.finished=true;return}const base=rounds[game.roundIndex];game.round={number:game.roundIndex+1,phase:'waiting',location:base.location,question:{text:base.question.text,options:base.question.options},answer:base.question.answer,maxPoints:100,questionStartsAt:null,questionEndsAt:null}}
+function finish(game){if(!game.round)return;game.round.phase='results';for(const t of game.teams){if(t.checkedInRound===game.round.number&&t.submittedRound!==game.round.number){t.results=[...(t.results||[]),{round:game.round.number,correct:false,points:0}];t.completedRounds=(t.completedRounds||0)+1}}}
+function distance(a,b){const rad=x=>x*Math.PI/180,R=6371e3,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+export default async req=>{try{
+ const {store,game}=await load();
+ if(req.method==='GET'){const out=publicGame(game);await store.setJSON(KEY,game);return Response.json(out,{headers})}
+ if(req.method!=='POST')return new Response('',{status:405,headers});const body=await req.json();
+ if(body.action==='register'){const name=clean(body.name);if(!name)return Response.json({error:'Vul een teamnaam in'},{status:400,headers});if(game.teams.some(t=>t.name.toLowerCase()===name.toLowerCase()))return Response.json({error:'Deze teamnaam bestaat al'},{status:409,headers});const team={id:crypto.randomUUID(),name,score:0,completedRounds:0,results:[]};game.teams.push(team);await store.setJSON(KEY,game);return Response.json({team,game:publicGame(game)},{headers})}
+ const team=game.teams.find(t=>t.id===body.teamId);
+ if(body.action==='checkin'){if(!team||!game.round)return Response.json({error:'Team of ronde niet gevonden'},{status:404,headers});const target=game.round.location,pos=body.position;if(target.lat!=null&&target.lng!=null){if(!pos)return Response.json({error:'Locatie is nodig om in te checken'},{status:400,headers});if(distance(pos,target)>Math.max(50,pos.accuracy||0))return Response.json({error:'Jullie zijn nog niet dicht genoeg bij de locatie'},{status:400,headers})}team.checkedInRound=game.round.number;await store.setJSON(KEY,game);return Response.json({game:publicGame(game)},{headers})}
+ if(body.action==='start_question'){if(!game.round||game.round.phase!=='waiting')return Response.json({error:'Deze ronde kan niet gestart worden'},{status:400,headers});const ready=game.teams.length&&game.teams.every(t=>t.checkedInRound===game.round.number);if(!ready)return Response.json({error:'Nog niet alle teams zijn ingecheckt'},{status:400,headers});game.round.phase='countdown';game.round.questionStartsAt=now()+5000;game.round.questionEndsAt=game.round.questionStartsAt+30000;await store.setJSON(KEY,game);return Response.json({game:publicGame(game)},{headers})}
+ if(body.action==='answer'){if(!team||!game.round||publicGame(game).round?.phase!=='question')return Response.json({error:'De vraag is niet actief'},{status:400,headers});if(team.submittedRound===game.round.number)return Response.json({error:'Antwoord al ontvangen'},{status:409,headers});const correct=Number(body.answer)===game.round.answer,remaining=Math.max(0,game.round.questionEndsAt-now()),points=correct?50+Math.round(50*remaining/30000):0;team.score=(team.score||0)+points;team.submittedRound=game.round.number;team.completedRounds=(team.completedRounds||0)+1;team.results=[...(team.results||[]),{round:game.round.number,correct,points,responseMs:30000-remaining}];if(game.teams.filter(t=>t.checkedInRound===game.round.number).every(t=>t.submittedRound===game.round.number))finish(game);await store.setJSON(KEY,game);return Response.json({game:publicGame(game)},{headers})}
+ if(body.action==='next_round'){if(game.round&&game.round.phase!=='results')return Response.json({error:'Rond eerst de actieve vraag af'},{status:400,headers});advance(game);await store.setJSON(KEY,game);return Response.json({game:publicGame(game)},{headers})}
+ return Response.json({error:'Onbekende actie'},{status:400,headers});
+ }catch(error){console.error(error);return Response.json({error:'Synchronisatie is tijdelijk niet beschikbaar'},{status:500,headers})}};
