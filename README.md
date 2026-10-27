@@ -2,7 +2,7 @@
 
 Mobiele kerst-webapp voor teams, met registratie, gps/kompas, quiz, gedeeld scorebord en optionele AI-selfies.
 
-De spelersapp staat op `/`. De aparte bediening voor de spelleider staat op `/leader.html`. De teamselfie wordt bij de registratie gemaakt. Route, inchecken, aftelling en quiz vormen daarna één chronologische spelpagina. De route loopt langs vijf Helchterense stops, met eet- en drinkmomenten bij Frituur Noord-Zuid en Sonnisheide. De spelleider start iedere vraag pas nadat alle geregistreerde teams op de locatie zijn ingecheckt. Daarna loopt een gezamenlijke aftelling van vijf seconden en een antwoordtijd van dertig seconden. Een juist antwoord levert 50 basispunten en maximaal 50 tijdspunten op.
+De spelersapp staat op `/`. De aparte bediening voor de spelleider staat op `/leader.html`. De teamselfie wordt bij de registratie gemaakt. Route, inchecken, aftelling en quiz vormen daarna één chronologische spelpagina. De route start en eindigt in de Fanfarezaal KF Sint-Trudo en telt acht stops. Frituur Swa is stop 4, gevolgd door Eikendreef en Helson als stop 5. De spelleider start iedere vraag pas nadat alle geregistreerde teams zijn ingecheckt. Daarna loopt een gezamenlijke aftelling van tien seconden en een antwoordtijd van twintig seconden. Een juist meerkeuzeantwoord levert 100 basispunten en maximaal 100 tijdspunten op. Open antwoorden met nog te bevestigen officiële antwoorden worden bewaard voor handmatige beoordeling.
 
 ## Netlify
 
