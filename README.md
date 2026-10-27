@@ -21,4 +21,6 @@ Gebruik `npm install`, gevolgd door `npx netlify dev`. Alleen een statische prev
 
 ## Spelinstellingen
 
-De gps-posten in `app.js` hebben bewust nog geen vaste coördinaten. Vul de echte locaties in bij `stops` wanneer ze bekend zijn. Zonder coördinaten werkt het kompas als bewegingssensor en kan een speler een post handmatig bevestigen.
+De gps-posten in `netlify/functions/game.mjs` hebben bewust nog geen vaste coördinaten. Vul de echte locaties bij `rounds` in wanneer ze bekend zijn.
+
+Voor tijdelijk testen staat locatiecontrole uit via `LOCATION_TEST_MODE` in `app.js` en `LOCATION_CHECKS_ENABLED` in `netlify/functions/game.mjs`. Zet beide waarden terug op `false` respectievelijk `true` om GPS-controle opnieuw te activeren.
