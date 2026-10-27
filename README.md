@@ -2,7 +2,7 @@
 
 Mobiele kerst-webapp voor teams, met registratie, gps/kompas, quiz, gedeeld scorebord en optionele AI-selfies.
 
-De spelersapp staat op `/`. De aparte bediening voor de spelleider staat op `/leader.html`. De spelleider start iedere vraag pas nadat alle geregistreerde teams op de locatie zijn ingecheckt. Daarna loopt een gezamenlijke aftelling van vijf seconden en een antwoordtijd van dertig seconden. Een juist antwoord levert 50 basispunten en maximaal 50 tijdspunten op.
+De spelersapp staat op `/`. De aparte bediening voor de spelleider staat op `/leader.html`. De teamselfie wordt bij de registratie gemaakt. Route, inchecken, aftelling en quiz vormen daarna één chronologische spelpagina. De route loopt langs vijf Helchterense stops, met eet- en drinkmomenten bij Frituur Noord-Zuid en Sonnisheide. De spelleider start iedere vraag pas nadat alle geregistreerde teams op de locatie zijn ingecheckt. Daarna loopt een gezamenlijke aftelling van vijf seconden en een antwoordtijd van dertig seconden. Een juist antwoord levert 50 basispunten en maximaal 50 tijdspunten op.
 
 ## Netlify
 
